@@ -24,6 +24,11 @@ import {
   LogOut,
   ChevronUp,
   PenSquare,
+  Zap,
+  FormInput,
+  Webhook,
+  BarChart3,
+  CreditCard,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -54,6 +59,31 @@ const navItems = [
     label: "Templates",
     href: "/dashboard/templates",
     icon: FileText,
+  },
+  {
+    label: "Automations",
+    href: "/dashboard/automations",
+    icon: Zap,
+  },
+  {
+    label: "Custom Fields",
+    href: "/dashboard/custom-fields",
+    icon: FormInput,
+  },
+  {
+    label: "Webhooks",
+    href: "/dashboard/webhooks",
+    icon: Webhook,
+  },
+  {
+    label: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
+  },
+  {
+    label: "Billing",
+    href: "/dashboard/billing",
+    icon: CreditCard,
   },
   {
     label: "Settings",

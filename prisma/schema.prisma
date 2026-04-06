@@ -40,8 +40,123 @@ model User {
   templates   Template[]
   tags        Tag[]
   apiKeys     ApiKey[]
+  customFields CustomField[]
+  automations Automation[]
+  webhooks    Webhook[]
 
   @@map("users")
+}
+
+// ─── Custom Fields ──────────────────────────────────────────────────────────
+
+model CustomField {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  key         String
+  type        CustomFieldType
+  required    Boolean  @default(false)
+  options     Json?    // For select/multiselect: ["option1", "option2"]
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  values      CustomFieldValue[]
+
+  @@unique([userId, key])
+  @@map("custom_fields")
+}
+
+model CustomFieldValue {
+  id            String @id @default(cuid())
+  customFieldId String
+  subscriberId  String
+  value         String
+
+  customField   CustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+  subscriber    Subscriber  @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+
+  @@unique([customFieldId, subscriberId])
+  @@map("custom_field_values")
+}
+
+enum CustomFieldType {
+  TEXT
+  NUMBER
+  DATE
+  SELECT
+  MULTISELECT
+  BOOLEAN
+}
+
+// ─── Automations ────────────────────────────────────────────────────────────
+
+model Automation {
+  id            String           @id @default(cuid())
+  userId        String
+  name          String
+  trigger       AutomationTrigger
+  triggerData   Json             // Trigger-specific config
+  actions       AutomationAction[]
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@map("automations")
+}
+
+model AutomationAction {
+  id             String   @id @default(cuid())
+  automationId   String
+  type           AutomationActionType
+  order          Int
+  delayHours     Int      @default(0) // 0 = immediate
+  config         Json     // Action-specific config
+  createdAt      DateTime @default(now())
+
+  automation     Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@index([automationId, order])
+  @@map("automation_actions")
+}
+
+enum AutomationTrigger {
+  SUBSCRIBE        // When someone subscribes
+  UNSUBSCRIBE      // When someone unsubscribes
+  TAG_ADDED        // When tag is added
+  TAG_REMOVED      // When tag is removed
+  EMAIL_OPENED     // When email is opened
+  LINK_CLICKED     // When link is clicked
+  DATE_REACHED     // Specific date/time
+}
+
+enum AutomationActionType {
+  SEND_EMAIL
+  ADD_TAG
+  REMOVE_TAG
+  WAIT
+  WEBHOOK
+}
+
+// ─── Webhooks ───────────────────────────────────────────────────────────────
+
+model Webhook {
+  id         String   @id @default(cuid())
+  userId     String
+  url        String
+  secret     String   // For webhook signature verification
+  events     String[] // Array of event types to listen for
+  isActive   Boolean  @default(true)
+  lastSentAt DateTime?
+  failCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@map("webhooks")
 }
 
 model Account {
@@ -103,6 +218,7 @@ model Subscriber {
   user  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags  SubscriberTag[]
   sends Send[]
+  customFieldValues CustomFieldValue[]
 
   @@unique([userId, email])
   @@index([userId, status])

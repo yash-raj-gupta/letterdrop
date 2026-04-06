@@ -1,3 +1,5 @@
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@/generated/prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
@@ -5,15 +7,17 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  // The generated client requires either an adapter or accelerateUrl.
-  // When using Supabase with a direct PostgreSQL connection, we need to use
-  // the prisma-postgres adapter approach or supply a URL.
-  // For Supabase, we pass the DATABASE_URL as the accelerateUrl.
-  const databaseUrl = process.env.DATABASE_URL ?? process.env.DIRECT_URL ?? "";
+  const connectionString = process.env.DATABASE_URL;
 
-  return new PrismaClient({
-    accelerateUrl: databaseUrl,
-  });
+  if (!connectionString) {
+    throw new Error(
+      "DATABASE_URL is not defined. Please check your .env file."
+    );
+  }
+
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaPg(pool);
+  return new PrismaClient({ adapter });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
