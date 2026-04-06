@@ -1,0 +1,244 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Authentication ─────────────────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  passwordHash   String?
+  image          String?
+  username       String?   @unique
+  brandName      String?
+  senderName     String?
+  senderEmail    String?
+  bio            String?
+  plan           Plan      @default(FREE)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+  subscribers Subscriber[]
+  newsletters Newsletter[]
+  templates   Template[]
+  tags        Tag[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── Subscriber Management ──────────────────────────────────────────────────
+
+model Subscriber {
+  id             String           @id @default(cuid())
+  userId         String
+  email          String
+  name           String?
+  status         SubscriberStatus @default(ACTIVE)
+  source         SubscriberSource @default(MANUAL)
+  subscribedAt   DateTime         @default(now())
+  unsubscribedAt DateTime?
+  confirmedAt    DateTime?
+  confirmToken   String?          @unique
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  user  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags  SubscriberTag[]
+  sends Send[]
+
+  @@unique([userId, email])
+  @@index([userId, status])
+  @@map("subscribers")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now())
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscribers SubscriberTag[]
+
+  @@unique([userId, name])
+  @@map("tags")
+}
+
+model SubscriberTag {
+  subscriberId String
+  tagId        String
+
+  subscriber Subscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  tag        Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([subscriberId, tagId])
+  @@map("subscriber_tags")
+}
+
+// ─── Newsletter ─────────────────────────────────────────────────────────────
+
+model Newsletter {
+  id          String           @id @default(cuid())
+  userId      String
+  subject     String
+  previewText String?
+  content     Json?
+  htmlContent String?          @db.Text
+  slug        String?
+  status      NewsletterStatus @default(DRAFT)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sends Send[]
+
+  @@unique([userId, slug])
+  @@index([userId, status])
+  @@map("newsletters")
+}
+
+model Send {
+  id           String     @id @default(cuid())
+  newsletterId String
+  subscriberId String
+  status       SendStatus @default(QUEUED)
+  messageId    String?
+  openedAt     DateTime?
+  clickedAt    DateTime?
+  bouncedAt    DateTime?
+  createdAt    DateTime   @default(now())
+
+  newsletter     Newsletter      @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  subscriber     Subscriber      @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  trackingEvents TrackingEvent[]
+
+  @@unique([newsletterId, subscriberId])
+  @@index([newsletterId])
+  @@map("sends")
+}
+
+model TrackingEvent {
+  id        String    @id @default(cuid())
+  sendId    String
+  type      EventType
+  url       String?
+  ip        String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  send Send @relation(fields: [sendId], references: [id], onDelete: Cascade)
+
+  @@index([sendId])
+  @@map("tracking_events")
+}
+
+// ─── Templates ──────────────────────────────────────────────────────────────
+
+model Template {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  content   Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("templates")
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum Plan {
+  FREE
+  STARTER
+  GROWTH
+  PRO
+}
+
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+  PENDING
+}
+
+enum SubscriberSource {
+  FORM
+  IMPORT
+  MANUAL
+  API
+}
+
+enum NewsletterStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+}
+
+enum SendStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  BOUNCED
+  FAILED
+}
+
+enum EventType {
+  OPEN
+  CLICK
+}
