@@ -165,7 +165,7 @@ export function NewslettersView() {
 
       {/* Filters */}
       <div className="flex items-center gap-4">
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "all")}>
+        <Select value={statusFilter} onValueChange={(v: string | null) => setStatusFilter(v ?? "all")}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All statuses" />
           </SelectTrigger>

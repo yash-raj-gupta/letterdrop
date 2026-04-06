@@ -10,20 +10,28 @@ datasource db {
 // ─── Authentication ─────────────────────────────────────────────────────────
 
 model User {
-  id             String    @id @default(cuid())
-  name           String?
-  email          String    @unique
-  emailVerified  DateTime?
-  passwordHash   String?
-  image          String?
-  username       String?   @unique
-  brandName      String?
-  senderName     String?
-  senderEmail    String?
-  bio            String?
-  plan           Plan      @default(FREE)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  name               String?
+  email              String    @unique
+  emailVerified      DateTime?
+  passwordHash       String?
+  image              String?
+  username           String?   @unique
+  brandName          String?
+  senderName         String?
+  senderEmail        String?
+  bio                String?
+  plan               Plan      @default(FREE)
+  
+  // Stripe billing fields
+  stripeCustomerId   String?   @unique
+  stripeSubscriptionId String?
+  stripePriceId      String?
+  subscriptionStatus SubscriptionStatus @default(INCOMPLETE)
+  currentPeriodEnd   DateTime?
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   accounts    Account[]
   sessions    Session[]
@@ -31,6 +39,7 @@ model User {
   newsletters Newsletter[]
   templates   Template[]
   tags        Tag[]
+  apiKeys     ApiKey[]
 
   @@map("users")
 }
@@ -207,6 +216,34 @@ enum Plan {
   STARTER
   GROWTH
   PRO
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  PAUSED
+}
+
+// ─── API Keys ───────────────────────────────────────────────────────────────
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  key         String    @unique
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@map("api_keys")
 }
 
 enum SubscriberStatus {
