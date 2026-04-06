@@ -41,6 +41,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { CsvImportDialog } from "./csv-import-dialog";
+import { TagManager } from "./tag-manager";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -270,42 +271,51 @@ export function SubscribersView() {
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by email or name..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
+      <div className="grid gap-4 lg:grid-cols-[1fr,300px]">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by email or name..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPagination((p) => ({ ...p, page: 1 }));
+                  }}
+                  className="pl-10"
+                />
+              </div>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => {
+                  setStatusFilter(value ?? "all");
                   setPagination((p) => ({ ...p, page: 1 }));
                 }}
-                className="pl-10"
-              />
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="UNSUBSCRIBED">Unsubscribed</SelectItem>
+                  <SelectItem value="BOUNCED">Bounced</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => {
-                setStatusFilter(value ?? "all");
-                setPagination((p) => ({ ...p, page: 1 }));
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="UNSUBSCRIBED">Unsubscribed</SelectItem>
-                <SelectItem value="BOUNCED">Bounced</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        
+        {/* Tags Sidebar */}
+        <Card>
+          <CardContent className="pt-6">
+            <TagManager />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Bulk Actions */}
       {selectedIds.size > 0 && (
