@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendNewsletter } from "@/lib/email/sender";
 import {
   successResponse,
   errorResponse,
@@ -37,16 +38,12 @@ export async function POST(
       return errorResponse("Newsletter has no content", 400);
     }
 
-    // Get active subscribers
-    const subscribers = await prisma.subscriber.findMany({
-      where: {
-        userId: session.user.id,
-        status: "ACTIVE",
-      },
-      select: { id: true, email: true, name: true },
+    // Check for active subscribers
+    const subscriberCount = await prisma.subscriber.count({
+      where: { userId: session.user.id, status: "ACTIVE" },
     });
 
-    if (subscribers.length === 0) {
+    if (subscriberCount === 0) {
       return errorResponse("No active subscribers to send to", 400);
     }
 
@@ -55,7 +52,10 @@ export async function POST(
     const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null;
 
     if (scheduledAt) {
-      // Schedule the newsletter
+      if (scheduledAt <= new Date()) {
+        return errorResponse("Scheduled time must be in the future", 400);
+      }
+
       await prisma.newsletter.update({
         where: { id },
         data: {
@@ -66,46 +66,22 @@ export async function POST(
 
       return successResponse({
         message: `Newsletter scheduled for ${scheduledAt.toISOString()}`,
-        subscriberCount: subscribers.length,
+        subscriberCount,
+        scheduled: true,
       });
     }
 
-    // Send immediately - update status
-    await prisma.newsletter.update({
-      where: { id },
-      data: { status: "SENDING" },
-    });
-
-    // Create send records for each subscriber
-    await prisma.send.createMany({
-      data: subscribers.map((subscriber) => ({
-        newsletterId: id,
-        subscriberId: subscriber.id,
-        status: "QUEUED",
-      })),
-      skipDuplicates: true,
-    });
-
-    // In production, this would trigger a background job to actually send emails.
-    // For now, we mark them as sent directly.
-    // TODO: Integrate with Resend API and background job queue
-
-    await prisma.send.updateMany({
-      where: { newsletterId: id },
-      data: { status: "SENT" },
-    });
-
-    await prisma.newsletter.update({
-      where: { id },
-      data: {
-        status: "SENT",
-        sentAt: new Date(),
-      },
+    // Send immediately
+    const result = await sendNewsletter({
+      newsletterId: id,
+      userId: session.user.id,
     });
 
     return successResponse({
-      message: `Newsletter sent to ${subscribers.length} subscribers`,
-      subscriberCount: subscribers.length,
+      message: result.simulated
+        ? `Newsletter simulated to ${result.sent} subscribers (Resend not configured)`
+        : `Newsletter sent to ${result.sent} subscribers`,
+      ...result,
     });
   } catch (error) {
     return handleApiError(error);

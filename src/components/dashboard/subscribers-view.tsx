@@ -36,11 +36,11 @@ import {
   Trash2,
   Loader2,
   Users,
-  Upload,
   MoreHorizontal,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { CsvImportDialog } from "./csv-import-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -212,10 +212,7 @@ export function SubscribersView() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Import CSV
-          </Button>
+          <CsvImportDialog onSuccess={fetchSubscribers} />
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger render={<Button size="sm" className="gap-2" />}>
               <UserPlus className="h-4 w-4" />
