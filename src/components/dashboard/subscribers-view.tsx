@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -41,10 +41,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { CsvImportDialog } from "./csv-import-dialog";
+import { TagManager } from "./tag-manager";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
@@ -97,6 +99,7 @@ export function SubscribersView() {
   const [isAddingSubscriber, setIsAddingSubscriber] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [newName, setNewName] = useState("");
+  const [expandedSubscriber, setExpandedSubscriber] = useState<string | null>(null);
 
   const fetchSubscribers = useCallback(async () => {
     setIsLoading(true);
@@ -373,7 +376,8 @@ export function SubscribersView() {
               </TableHeader>
               <TableBody>
                 {subscribers.map((subscriber) => (
-                  <TableRow key={subscriber.id}>
+                  <React.Fragment key={subscriber.id}>
+                  <TableRow>
                     <TableCell>
                       <input
                         type="checkbox"
@@ -409,7 +413,19 @@ export function SubscribersView() {
                         <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="h-8 w-8" />}>
                           <MoreHorizontal className="h-4 w-4" />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setExpandedSubscriber(
+                                expandedSubscriber === subscriber.id
+                                  ? null
+                                  : subscriber.id
+                              )
+                            }
+                          >
+                            Manage Tags
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => handleDelete([subscriber.id])}
                             className="text-destructive focus:text-destructive"
@@ -421,7 +437,19 @@ export function SubscribersView() {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
+                  {expandedSubscriber === subscriber.id && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="bg-muted/50 py-3 px-6">
+                        <TagManager
+                          subscriberId={subscriber.id}
+                          subscriberTags={subscriber.tags}
+                          onTagsChange={fetchSubscribers}
+                        />
+                      </TableCell>
+                    </TableRow>
+                   )}
+                 </React.Fragment>
+                 ))}
               </TableBody>
             </Table>
           )}

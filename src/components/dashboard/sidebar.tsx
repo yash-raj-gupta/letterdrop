@@ -24,6 +24,9 @@ import {
   LogOut,
   ChevronUp,
   PenSquare,
+  BarChart3,
+  CreditCard,
+  Zap,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -54,6 +57,21 @@ const navItems = [
     label: "Templates",
     href: "/dashboard/templates",
     icon: FileText,
+  },
+  {
+    label: "Analytics",
+    href: "/dashboard/analytics",
+    icon: BarChart3,
+  },
+  {
+    label: "Automations",
+    href: "/dashboard/automations",
+    icon: Zap,
+  },
+  {
+    label: "Billing",
+    href: "/dashboard/billing",
+    icon: CreditCard,
   },
   {
     label: "Settings",
