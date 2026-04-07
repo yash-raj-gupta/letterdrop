@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { Button } from "@/components/ui/button";
-import { Send, ArrowLeft, Calendar, Share2 } from "lucide-react";
+import { Send, ArrowLeft, Calendar } from "lucide-react";
+import { ShareButton } from "@/components/shared/share-button";
 import { format } from "date-fns";
 import { PublicSubscribeForm } from "@/components/shared/public-subscribe-form";
 import type { Metadata } from "next";
@@ -87,14 +87,7 @@ export default async function PublicNewsletterPage({ params }: Props) {
             {displayName}
           </Link>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => {}}
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
+            <ShareButton />
           </div>
         </div>
       </header>

@@ -279,6 +279,7 @@ export default function LandingPage() {
                     "Email support",
                   ],
                   cta: "Get Started",
+                  href: "/register",
                   highlighted: false,
                 },
                 {
@@ -294,6 +295,7 @@ export default function LandingPage() {
                     "CSV import",
                   ],
                   cta: "Start Free Trial",
+                  href: "/register?plan=STARTER",
                   highlighted: false,
                 },
                 {
@@ -309,6 +311,7 @@ export default function LandingPage() {
                     "Tags & segments",
                   ],
                   cta: "Start Free Trial",
+                  href: "/register?plan=GROWTH",
                   highlighted: true,
                 },
                 {
@@ -323,7 +326,8 @@ export default function LandingPage() {
                     "API access",
                     "Dedicated support",
                   ],
-                  cta: "Contact Sales",
+                  cta: "Start Free Trial",
+                  href: "/register?plan=PRO",
                   highlighted: false,
                 },
               ].map((plan, i) => (
@@ -363,7 +367,7 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/register" className="mt-auto">
+                  <Link href={plan.href} className="mt-auto">
                     <Button
                       variant={plan.highlighted ? "default" : "outline"}
                       className="w-full"

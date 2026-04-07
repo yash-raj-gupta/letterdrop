@@ -13,6 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Save, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { PLAN_LIMITS } from "@/lib/constants";
+import { ApiKeysManager } from "./api-keys-manager";
+import { CustomFieldsManager } from "./custom-fields-manager";
+import { WebhooksManager } from "./webhooks-manager";
 
 interface User {
   id: string;
@@ -255,7 +258,7 @@ export function SettingsView({ user }: SettingsViewProps) {
                 Upgrade your plan to unlock more subscribers, unlimited emails,
                 and premium features.
               </p>
-              <Button size="sm" className="mt-3 gap-1">
+              <Button size="sm" className="mt-3 gap-1" onClick={() => router.push("/dashboard/billing")}>
                 <Crown className="h-3.5 w-3.5" />
                 Upgrade Plan
               </Button>
@@ -263,6 +266,15 @@ export function SettingsView({ user }: SettingsViewProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* API Keys */}
+      <ApiKeysManager />
+
+      {/* Custom Fields */}
+      <CustomFieldsManager />
+
+      {/* Webhooks */}
+      <WebhooksManager />
 
       <Separator />
 

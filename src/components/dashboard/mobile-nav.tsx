@@ -19,6 +19,9 @@ import {
   LogOut,
   Menu,
   PenSquare,
+  BarChart3,
+  CreditCard,
+  Zap,
 } from "lucide-react";
 
 interface MobileNavProps {
@@ -34,6 +37,9 @@ const navItems = [
   { label: "Newsletters", href: "/dashboard/newsletters", icon: Mail },
   { label: "Subscribers", href: "/dashboard/subscribers", icon: Users },
   { label: "Templates", href: "/dashboard/templates", icon: FileText },
+  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+  { label: "Automations", href: "/dashboard/automations", icon: Zap },
+  { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
